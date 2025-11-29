@@ -597,7 +597,7 @@ export default function Home() {
                               <Hash className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                               <span className={`truncate text-sm ${isTicket ? "font-medium" : ""}`}>{channel.name}</span>
                             </div>
-                            {unreadCount > 0 && (
+                            {isTicket && unreadCount > 0 && (
                               <Badge variant="destructive" className="text-[10px] px-1.5 h-5 flex-shrink-0">
                                 {unreadCount}
                               </Badge>
