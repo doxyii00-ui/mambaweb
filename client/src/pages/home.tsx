@@ -42,6 +42,7 @@ export default function Home() {
   const [messageContent, setMessageContent] = useState("");
   const [isAddBotOpen, setIsAddBotOpen] = useState(false);
   const [isCommandsOpen, setIsCommandsOpen] = useState(false);
+  const [readMessages, setReadMessages] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const commands = [
@@ -158,10 +159,16 @@ export default function Home() {
     },
   });
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom when new messages arrive and mark as read
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messages.length > 0 && selectedChannelId) {
+      setReadMessages(prev => ({
+        ...prev,
+        [selectedChannelId]: messages[messages.length - 1].id
+      }));
+    }
+  }, [messages, selectedChannelId]);
 
   // Auto-select first bot
   useEffect(() => {
@@ -238,6 +245,20 @@ export default function Home() {
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const isTicketChannel = (channelName: string) => {
+    return /^ticket-\d+$/.test(channelName);
+  };
+
+  const getUnreadCount = (channelId: string) => {
+    const lastReadId = readMessages[channelId];
+    if (!lastReadId) return messages.filter(m => m.id).length;
+    return messages.filter(m => {
+      const msgIndex = messages.findIndex(msg => msg.id === m.id);
+      const readIndex = messages.findIndex(msg => msg.id === lastReadId);
+      return msgIndex > readIndex;
+    }).length;
   };
 
   return (
@@ -548,20 +569,42 @@ export default function Home() {
                     ) : textChannels.length === 0 ? (
                       <p className="text-sm text-muted-foreground p-2">Brak kanalow</p>
                     ) : (
-                      textChannels.map((channel) => (
-                        <Button
-                          key={channel.id}
-                          variant="ghost"
-                          className={`w-full justify-start gap-2 h-8 px-2 ${
-                            selectedChannelId === channel.id ? "bg-accent" : ""
-                          }`}
-                          onClick={() => setSelectedChannelId(channel.id)}
-                          data-testid={`channel-button-${channel.id}`}
-                        >
-                          <Hash className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="truncate text-sm">{channel.name}</span>
-                        </Button>
-                      ))
+                      textChannels.map((channel) => {
+                        const isTicket = isTicketChannel(channel.name);
+                        const unreadCount = selectedChannelId !== channel.id ? messages.filter(m => {
+                          const lastReadId = readMessages[channel.id];
+                          if (!lastReadId) return true;
+                          const msgIndex = messages.findIndex(msg => msg.id === m.id);
+                          const readIndex = messages.findIndex(msg => msg.id === lastReadId);
+                          return msgIndex > readIndex;
+                        }).length : 0;
+                        
+                        return (
+                          <Button
+                            key={channel.id}
+                            variant="ghost"
+                            className={`w-full justify-between gap-2 h-8 px-2 ${
+                              selectedChannelId === channel.id 
+                                ? "bg-accent" 
+                                : isTicket 
+                                  ? "bg-primary/10 hover:bg-primary/20" 
+                                  : ""
+                            }`}
+                            onClick={() => setSelectedChannelId(channel.id)}
+                            data-testid={`channel-button-${channel.id}`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Hash className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                              <span className={`truncate text-sm ${isTicket ? "font-medium" : ""}`}>{channel.name}</span>
+                            </div>
+                            {unreadCount > 0 && (
+                              <Badge variant="destructive" className="text-[10px] px-1.5 h-5 flex-shrink-0">
+                                {unreadCount}
+                              </Badge>
+                            )}
+                          </Button>
+                        );
+                      })
                     )}
                   </div>
                 </ScrollArea>
