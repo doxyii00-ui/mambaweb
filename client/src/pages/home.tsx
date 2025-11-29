@@ -82,8 +82,9 @@ export default function Home() {
       setIsAddBotOpen(false);
       toast({ title: "Bot dodany", description: "Bot zostal pomyslnie dodany." });
     },
-    onError: (error: Error) => {
-      toast({ title: "Blad", description: error.message, variant: "destructive" });
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Nieznany blad";
+      toast({ title: "Blad", description: message, variant: "destructive" });
     },
   });
 
@@ -97,8 +98,9 @@ export default function Home() {
       setSelectedChannelId(null);
       toast({ title: "Bot usuniety", description: "Bot zostal usuniety." });
     },
-    onError: (error: Error) => {
-      toast({ title: "Blad", description: error.message, variant: "destructive" });
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Nieznany blad";
+      toast({ title: "Blad", description: message, variant: "destructive" });
     },
   });
 
@@ -109,8 +111,10 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/bots"] });
       toast({ title: "Polaczono", description: "Bot zostal polaczony z Discord." });
     },
-    onError: (error: Error) => {
-      toast({ title: "Blad polaczenia", description: error.message, variant: "destructive" });
+    onError: (error: unknown) => {
+      console.error("Connect error:", error);
+      const message = error instanceof Error ? error.message : "Nieznany blad";
+      toast({ title: "Blad polaczenia", description: message, variant: "destructive" });
     },
   });
 
@@ -123,8 +127,9 @@ export default function Home() {
       setSelectedChannelId(null);
       toast({ title: "Rozlaczono", description: "Bot zostal rozlaczony." });
     },
-    onError: (error: Error) => {
-      toast({ title: "Blad", description: error.message, variant: "destructive" });
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Nieznany blad";
+      toast({ title: "Blad", description: message, variant: "destructive" });
     },
   });
 
@@ -136,8 +141,9 @@ export default function Home() {
       setMessageContent("");
       refetchMessages();
     },
-    onError: (error: Error) => {
-      toast({ title: "Blad wysylania", description: error.message, variant: "destructive" });
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Nieznany blad";
+      toast({ title: "Blad wysylania", description: message, variant: "destructive" });
     },
   });
 
