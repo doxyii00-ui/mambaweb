@@ -26,6 +26,7 @@ import {
   Users,
   RefreshCw
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { Bot, InsertBot, DiscordGuild, DiscordChannel, DiscordMessage } from "@shared/schema";
 
 export default function Home() {
@@ -382,6 +383,7 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
+              <ThemeToggle />
               {selectedBot.status === "online" ? (
                 <Button
                   variant="outline"
