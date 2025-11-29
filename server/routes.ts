@@ -321,5 +321,52 @@ export async function registerRoutes(
     }
   });
 
+  // Execute bot commands
+  app.post("/api/bots/:botId/commands", async (req, res) => {
+    try {
+      const { botId } = req.params;
+      const { command } = req.body;
+
+      if (!command || typeof command !== "string") {
+        return res.status(400).json({ error: "Invalid command" });
+      }
+
+      const client = discordClients.get(botId);
+      if (!client || !client.isReady()) {
+        return res.status(400).json({ error: "Bot not connected" });
+      }
+
+      const bot = await storage.getBot(botId);
+      if (!bot) {
+        return res.status(404).json({ error: "Bot not found" });
+      }
+
+      const parts = command.trim().split(" ");
+      const cmd = parts[0].toLowerCase();
+
+      let result = "";
+
+      if (cmd === "/ping") {
+        result = `Pong! Latency: ${client.ws.ping}ms`;
+      } else if (cmd === "/status") {
+        result = `Bot: ${bot.name}\nStatus: ${bot.status}\nGuilds: ${client.guilds.cache.size}\nLatency: ${client.ws.ping}ms`;
+      } else if (cmd === "/uptime") {
+        const uptime = client.uptime || 0;
+        const hours = Math.floor(uptime / 3600000);
+        const minutes = Math.floor((uptime % 3600000) / 60000);
+        result = `Uptime: ${hours}h ${minutes}m`;
+      } else if (cmd === "/help") {
+        result = `/ping - Test bot latency\n/status - Show bot status\n/uptime - Show bot uptime\n/help - Show this message`;
+      } else {
+        result = `Unknown command: ${cmd}. Type /help for available commands.`;
+      }
+
+      res.json({ result });
+    } catch (error: any) {
+      console.error("Command error:", error);
+      res.status(500).json({ error: "Failed to execute command" });
+    }
+  });
+
   return httpServer;
 }

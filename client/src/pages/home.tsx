@@ -24,7 +24,8 @@ import {
   MessageSquare,
   Loader2,
   Users,
-  RefreshCw
+  RefreshCw,
+  Terminal
 } from "lucide-react";
 import type { Bot, InsertBot, DiscordGuild, DiscordChannel, DiscordMessage } from "@shared/schema";
 
@@ -38,6 +39,7 @@ export default function Home() {
   const [showToken, setShowToken] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [isAddBotOpen, setIsAddBotOpen] = useState(false);
+  const [commandResult, setCommandResult] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch all bots
@@ -147,6 +149,21 @@ export default function Home() {
     },
   });
 
+  // Execute command mutation
+  const executeCommandMutation = useMutation({
+    mutationFn: (command: string) =>
+      apiRequest("POST", `/api/bots/${selectedBotId}/commands`, { command }).then(res => res.json()),
+    onSuccess: (data: { result: string }) => {
+      setMessageContent("");
+      setCommandResult(data.result);
+      setTimeout(() => setCommandResult(""), 5000);
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Nieznany blad";
+      toast({ title: "Blad komendy", description: message, variant: "destructive" });
+    },
+  });
+
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -183,7 +200,13 @@ export default function Home() {
 
   const handleSendMessage = () => {
     if (!messageContent.trim()) return;
-    sendMessageMutation.mutate(messageContent.trim());
+    
+    // Detect commands starting with /
+    if (messageContent.trim().startsWith("/")) {
+      executeCommandMutation.mutate(messageContent.trim());
+    } else {
+      sendMessageMutation.mutate(messageContent.trim());
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -616,11 +639,25 @@ export default function Home() {
                       </div>
                     </ScrollArea>
 
+                    {/* Command Result Display */}
+                    {commandResult && (
+                      <div className="px-4 pt-3 pb-0">
+                        <Card className="bg-accent/10 border-accent">
+                          <CardContent className="p-3">
+                            <div className="flex items-start gap-2">
+                              <Terminal className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                              <div className="text-sm whitespace-pre-wrap break-words">{commandResult}</div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+
                     {/* Message input */}
                     <div className="p-4 border-t border-border bg-card/50 flex-shrink-0">
                       <div className="flex gap-2">
                         <Textarea
-                          placeholder="Napisz wiadomosc..."
+                          placeholder="Napisz wiadomosc lub /help aby zobaczyc dostepne komendy..."
                           value={messageContent}
                           onChange={(e) => setMessageContent(e.target.value)}
                           onKeyDown={handleKeyDown}
