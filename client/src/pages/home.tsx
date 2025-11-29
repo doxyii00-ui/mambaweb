@@ -39,10 +39,14 @@ export default function Home() {
   const [showToken, setShowToken] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [isAddBotOpen, setIsAddBotOpen] = useState(false);
-  const [commandsList, setCommandsList] = useState<string[]>(["/adminpanel", "/apka", "/generator", "/gotowe", "/panel", "/setticketmessage", "/ticket"]);
-  const [isEditingCommands, setIsEditingCommands] = useState(false);
-  const [commandsText, setCommandsText] = useState("/adminpanel\n/apka\n/generator\n/gotowe\n/panel\n/setticketmessage\n/ticket");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const commands = [
+    { id: "apka", label: "Apka", description: "Link do aplikacji" },
+    { id: "panel", label: "Panel", description: "Link do panelu" },
+    { id: "instrukcje", label: "Instrukcje", description: "Wyslij dane" },
+    { id: "ios", label: "iOS", description: "Instrukcja na iOS" },
+  ];
 
   // Fetch all bots
   const { data: bots = [], isLoading: botsLoading } = useQuery<Bot[]>({
@@ -190,14 +194,27 @@ export default function Home() {
     sendMessageMutation.mutate(messageContent.trim());
   };
 
-  const handleSendCommand = (command: string) => {
-    sendMessageMutation.mutate(command);
-  };
-
-  const handleSaveCommands = () => {
-    const commands = commandsText.split("\n").filter(c => c.trim());
-    setCommandsList(commands);
-    setIsEditingCommands(false);
+  const handleSendCommand = (commandId: string) => {
+    let messageToSend = "";
+    
+    switch (commandId) {
+      case "apka":
+        messageToSend = "https://buy.stripe.com/9B600k7NwbhLdTXdJugEg02";
+        break;
+      case "panel":
+        messageToSend = "https://buy.stripe.com/4gMeVe8RAbhL6rvbBmgEg01";
+        break;
+      case "instrukcje":
+        messageToSend = "Wyslij zdjecie twarzy, imie i nazwisko, date urodzenia";
+        break;
+      case "ios":
+        messageToSend = "Uruchom strone w safari\nNacisnij strzalke w gore na dolnym pasku po srodku\nNacisnij \"Dodaj do ekranu głownego\"";
+        break;
+    }
+    
+    if (messageToSend) {
+      sendMessageMutation.mutate(messageToSend);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -632,48 +649,20 @@ export default function Home() {
                     </ScrollArea>
 
                     {/* Commands Panel */}
-                    <div className="px-4 pt-2 pb-0 flex-shrink-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold text-muted-foreground">Komendy:</span>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 text-xs" data-testid="button-edit-commands">
-                              Edytuj
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Edytuj komendy bota</DialogTitle>
-                            </DialogHeader>
-                            <Textarea
-                              value={commandsText}
-                              onChange={(e) => setCommandsText(e.target.value)}
-                              placeholder="Wpisz komendy (każda w nowej linii)"
-                              className="min-h-32"
-                            />
-                            <DialogFooter>
-                              <DialogClose asChild>
-                                <Button variant="outline">Anuluj</Button>
-                              </DialogClose>
-                              <Button onClick={handleSaveCommands} data-testid="button-save-commands">
-                                Zapisz
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                      <div className="flex gap-1.5 flex-wrap mb-3">
-                        {commandsList.map((command) => (
+                    <div className="px-4 pt-3 pb-0 flex-shrink-0 border-t border-border">
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-semibold text-muted-foreground mb-3">Komendy szybkie:</h4>
+                        {commands.map((cmd) => (
                           <Button
-                            key={command}
+                            key={cmd.id}
                             variant="outline"
-                            size="sm"
-                            onClick={() => handleSendCommand(command)}
+                            className="w-full justify-start h-auto py-2 px-3 flex-col items-start gap-1"
+                            onClick={() => handleSendCommand(cmd.id)}
                             disabled={sendMessageMutation.isPending || !isBotOnline}
-                            className="text-xs h-7"
-                            data-testid={`button-command-${command}`}
+                            data-testid={`button-command-${cmd.id}`}
                           >
-                            {command}
+                            <span className="font-medium text-sm">{cmd.label}</span>
+                            <span className="text-xs text-muted-foreground">{cmd.description}</span>
                           </Button>
                         ))}
                       </div>
