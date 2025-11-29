@@ -42,7 +42,7 @@ export default function Home() {
   const [messageContent, setMessageContent] = useState("");
   const [isAddBotOpen, setIsAddBotOpen] = useState(false);
   const [isCommandsOpen, setIsCommandsOpen] = useState(false);
-  const [readMessages, setReadMessages] = useState<Record<string, string>>({});
+  const [channelMessageCounts, setChannelMessageCounts] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const commands = [
@@ -162,10 +162,20 @@ export default function Home() {
   // Scroll to bottom when new messages arrive and mark as read
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    if (messages.length > 0 && selectedChannelId) {
-      setReadMessages(prev => ({
+    if (selectedChannelId) {
+      setChannelMessageCounts(prev => ({
         ...prev,
-        [selectedChannelId]: messages[messages.length - 1].id
+        [selectedChannelId]: 0
+      }));
+    }
+  }, [selectedChannelId]);
+
+  // Track unread messages per channel
+  useEffect(() => {
+    if (selectedChannelId && messages.length > 0) {
+      setChannelMessageCounts(prev => ({
+        ...prev,
+        [selectedChannelId]: 0
       }));
     }
   }, [messages, selectedChannelId]);
@@ -249,16 +259,6 @@ export default function Home() {
 
   const isTicketChannel = (channelName: string) => {
     return /^ticket-\d+$/.test(channelName);
-  };
-
-  const getUnreadCount = (channelId: string) => {
-    const lastReadId = readMessages[channelId];
-    if (!lastReadId) return messages.filter(m => m.id).length;
-    return messages.filter(m => {
-      const msgIndex = messages.findIndex(msg => msg.id === m.id);
-      const readIndex = messages.findIndex(msg => msg.id === lastReadId);
-      return msgIndex > readIndex;
-    }).length;
   };
 
   return (
@@ -571,13 +571,7 @@ export default function Home() {
                     ) : (
                       textChannels.map((channel) => {
                         const isTicket = isTicketChannel(channel.name);
-                        const unreadCount = selectedChannelId !== channel.id ? messages.filter(m => {
-                          const lastReadId = readMessages[channel.id];
-                          if (!lastReadId) return true;
-                          const msgIndex = messages.findIndex(msg => msg.id === m.id);
-                          const readIndex = messages.findIndex(msg => msg.id === lastReadId);
-                          return msgIndex > readIndex;
-                        }).length : 0;
+                        const unreadCount = channelMessageCounts[channel.id] ?? 0;
                         
                         return (
                           <Button
