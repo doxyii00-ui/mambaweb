@@ -65,7 +65,7 @@ export default function Home() {
   const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery<DiscordMessage[]>({
     queryKey: ["/api/bots", selectedBotId, "channels", selectedChannelId, "messages"],
     enabled: !!selectedBotId && !!selectedChannelId && isBotOnline,
-    refetchInterval: 5000,
+    refetchInterval: 2000,
   });
 
   // Compute derived state
@@ -139,7 +139,7 @@ export default function Home() {
       apiRequest("POST", `/api/bots/${selectedBotId}/channels/${selectedChannelId}/messages`, { content }),
     onSuccess: () => {
       setMessageContent("");
-      refetchMessages();
+      setTimeout(() => refetchMessages(), 100);
     },
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : "Nieznany blad";
