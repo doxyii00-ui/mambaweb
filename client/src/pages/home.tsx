@@ -38,9 +38,9 @@ export default function Home() {
   const [showToken, setShowToken] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [isAddBotOpen, setIsAddBotOpen] = useState(false);
-  const [commandsList, setCommandsList] = useState<string[]>(["/apka", "/help", "/status"]);
+  const [commandsList, setCommandsList] = useState<string[]>(["/adminpanel", "/apka", "/generator", "/gotowe", "/panel", "/setticketmessage", "/ticket"]);
   const [isEditingCommands, setIsEditingCommands] = useState(false);
-  const [commandsText, setCommandsText] = useState("/apka\n/help\n/status");
+  const [commandsText, setCommandsText] = useState("/adminpanel\n/apka\n/generator\n/gotowe\n/panel\n/setticketmessage\n/ticket");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch all bots
