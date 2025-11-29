@@ -261,16 +261,18 @@ export default function Home() {
     return /^ticket-\d+$/.test(channelName);
   };
 
+  const [mobilePanel, setMobilePanel] = useState<"bots" | "guilds" | "channels" | "messages">("bots");
+
   return (
-    <div className="flex h-screen w-full bg-background">
-      {/* Left Sidebar - Bot List (Panel 1) */}
-      <div className="w-64 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
-        <div className="p-4 border-b border-sidebar-border">
+    <div className="flex flex-col lg:flex-row h-screen w-full bg-background">
+      {/* Left Sidebar - Bot List (Panel 1) - Hidden on mobile unless selected */}
+      <div className={`${mobilePanel !== "bots" ? "hidden" : ""} lg:block w-full lg:w-64 flex-shrink-0 bg-sidebar border-r lg:border-r border-b lg:border-b-0 border-sidebar-border flex flex-col`}>
+        <div className="p-4 border-b border-sidebar-border flex items-center justify-between gap-2">
           <Dialog open={isAddBotOpen} onOpenChange={setIsAddBotOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full gap-2" data-testid="button-add-bot">
+              <Button className="flex-1 lg:w-full gap-2" data-testid="button-add-bot">
                 <Plus className="w-4 h-4" />
-                Dodaj Bota
+                Dodaj
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
@@ -331,6 +333,15 @@ export default function Home() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMobilePanel("bots")}
+            className="lg:hidden"
+            data-testid="button-mobile-back-bots"
+          >
+            ←
+          </Button>
         </div>
 
         <ScrollArea className="flex-1">
@@ -414,16 +425,25 @@ export default function Home() {
 
       {/* Main Content - Three Panel Layout */}
       {selectedBot ? (
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col lg:flex-row min-w-0"  >
           {/* Header */}
-          <div className="h-14 px-4 border-b border-border flex items-center justify-between gap-4 bg-card flex-shrink-0">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="h-14 px-3 lg:px-4 border-b border-border flex items-center justify-between gap-2 lg:gap-4 bg-card flex-shrink-0">
+            <div className="flex items-center gap-2 lg:gap-3 min-w-0 flex-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobilePanel("bots")}
+                className="lg:hidden h-8 w-8 p-0"
+                data-testid="button-mobile-back-from-bot"
+              >
+                ←
+              </Button>
               <div className="flex items-center gap-2 min-w-0">
                 <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(selectedBot.status)}`} />
-                <span className="font-semibold truncate">{selectedBot.name}</span>
+                <span className="font-semibold truncate text-sm lg:text-base">{selectedBot.name}</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
               <ThemeToggle />
               {selectedBot.status === "online" ? (
                 <Button
@@ -432,9 +452,11 @@ export default function Home() {
                   onClick={() => disconnectBotMutation.mutate(selectedBot.id)}
                   disabled={disconnectBotMutation.isPending}
                   data-testid="button-disconnect-bot"
+                  className="text-xs lg:text-sm"
                 >
-                  {disconnectBotMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Rozlacz
+                  {disconnectBotMutation.isPending && <Loader2 className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 animate-spin" />}
+                  <span className="hidden lg:inline">Rozlacz</span>
+                  <span className="lg:hidden">Wyłacz</span>
                 </Button>
               ) : (
                 <Button
@@ -442,11 +464,13 @@ export default function Home() {
                   onClick={() => connectBotMutation.mutate(selectedBot.id)}
                   disabled={connectBotMutation.isPending || selectedBot.status === "connecting"}
                   data-testid="button-connect-bot"
+                  className="text-xs lg:text-sm"
                 >
                   {(connectBotMutation.isPending || selectedBot.status === "connecting") && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 animate-spin" />
                   )}
-                  Polacz
+                  <span className="hidden lg:inline">Polacz</span>
+                  <span className="lg:hidden">Wlacz</span>
                 </Button>
               )}
             </div>
@@ -474,11 +498,22 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex overflow-hidden">
-              {/* Panel 2 - Server List */}
-              <div className="w-56 flex-shrink-0 border-r border-border bg-card/30 flex flex-col">
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+              {/* Panel 2 - Server List - Hidden on mobile unless selected */}
+              <div className={`${mobilePanel !== "guilds" ? "hidden" : ""} lg:block w-full lg:w-56 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-card/30 flex flex-col`}>
                 <div className="p-3 border-b border-border flex items-center justify-between gap-2">
-                  <h3 className="font-semibold text-sm">Serwery</h3>
+                  <div className="flex items-center gap-2 flex-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setMobilePanel("channels")}
+                      className="lg:hidden h-8 w-8 p-0"
+                      data-testid="button-mobile-back-from-guilds"
+                    >
+                      ←
+                    </Button>
+                    <h3 className="font-semibold text-sm">Serwery</h3>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -516,6 +551,7 @@ export default function Home() {
                           onClick={() => {
                             setSelectedGuildId(guild.id);
                             setSelectedChannelId(null);
+                            setMobilePanel("channels");
                           }}
                           data-testid={`guild-item-${guild.id}`}
                         >
@@ -549,9 +585,18 @@ export default function Home() {
               </div>
 
               {/* Panel 3 - Channel List */}
-              <div className="w-48 flex-shrink-0 border-r border-border bg-card/50 flex flex-col">
-                <div className="p-3 border-b border-border">
-                  <h3 className="font-semibold text-sm truncate">
+              <div className={`${mobilePanel !== "channels" ? "hidden" : ""} lg:block w-full lg:w-48 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-card/50 flex flex-col`}>
+                <div className="p-3 border-b border-border flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setMobilePanel("guilds")}
+                    className="lg:hidden h-8 w-8 p-0"
+                    data-testid="button-mobile-back-from-channels"
+                  >
+                    ←
+                  </Button>
+                  <h3 className="font-semibold text-sm truncate flex-1">
                     {selectedGuild ? selectedGuild.name : "Kanaly"}
                   </h3>
                 </div>
@@ -584,7 +629,10 @@ export default function Home() {
                                   ? "bg-primary/10 hover:bg-primary/20" 
                                   : ""
                             }`}
-                            onClick={() => setSelectedChannelId(channel.id)}
+                            onClick={() => {
+                              setSelectedChannelId(channel.id);
+                              setMobilePanel("messages");
+                            }}
                             data-testid={`channel-button-${channel.id}`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
@@ -605,7 +653,7 @@ export default function Home() {
               </div>
 
               {/* Panel 4 - Messages */}
-              <div className="flex-1 flex flex-col min-w-0">
+              <div className={`${mobilePanel !== "messages" ? "hidden" : ""} lg:block flex-1 flex flex-col min-w-0`}>
                 {!selectedChannelId ? (
                   <div className="flex-1 flex items-center justify-center">
                     <div className="text-center p-8">
@@ -617,16 +665,25 @@ export default function Home() {
                 ) : (
                   <>
                     {/* Channel header */}
-                    <div className="h-12 px-4 border-b border-border flex items-center gap-2 bg-card/30 flex-shrink-0">
+                    <div className="h-12 px-3 lg:px-4 border-b border-border flex items-center gap-2 bg-card/30 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setMobilePanel("channels")}
+                        className="lg:hidden h-8 w-8 p-0"
+                        data-testid="button-mobile-back-from-messages"
+                      >
+                        ←
+                      </Button>
                       <Hash className="w-5 h-5 text-muted-foreground" />
-                      <span className="font-semibold">
+                      <span className="font-semibold text-sm lg:text-base truncate">
                         {textChannels.find(c => c.id === selectedChannelId)?.name}
                       </span>
                     </div>
 
                     {/* Messages */}
                     <ScrollArea className="flex-1">
-                      <div className="p-4 space-y-4">
+                      <div className="p-2 lg:p-4 space-y-3 lg:space-y-4">
                         {messagesLoading ? (
                           Array.from({ length: 5 }).map((_, i) => (
                             <div key={i} className="flex gap-3">
@@ -644,8 +701,8 @@ export default function Home() {
                           </div>
                         ) : (
                           messages.map((message) => (
-                            <div key={message.id} className="flex gap-3 group" data-testid={`message-${message.id}`}>
-                              <Avatar className="w-10 h-10 flex-shrink-0">
+                            <div key={message.id} className="flex gap-2 lg:gap-3 group" data-testid={`message-${message.id}`}>
+                              <Avatar className="w-8 h-8 lg:w-10 lg:h-10 flex-shrink-0">
                                 {message.author.avatar ? (
                                   <AvatarImage 
                                     src={`https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`}
@@ -658,13 +715,13 @@ export default function Home() {
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-baseline gap-2 flex-wrap">
-                                  <span className="font-semibold text-sm">{message.author.username}</span>
+                                  <span className="font-semibold text-xs lg:text-sm">{message.author.username}</span>
                                   {message.author.bot && (
                                     <Badge variant="secondary" className="text-[10px] px-1 py-0">BOT</Badge>
                                   )}
                                   <span className="text-xs text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
                                 </div>
-                                <p className="text-sm break-words whitespace-pre-wrap">{message.content}</p>
+                                <p className="text-xs lg:text-sm break-words whitespace-pre-wrap">{message.content}</p>
                                 {message.attachments && message.attachments.length > 0 && (
                                   <div className="mt-2 space-y-1">
                                     {message.attachments.map((attachment) => (
@@ -718,14 +775,14 @@ export default function Home() {
                     </Collapsible>
 
                     {/* Message input */}
-                    <div className="p-4 border-t border-border bg-card/50 flex-shrink-0">
+                    <div className="p-2 lg:p-4 border-t border-border bg-card/50 flex-shrink-0">
                       <div className="flex gap-2">
                         <Textarea
-                          placeholder="Napisz wiadomosc..."
+                          placeholder="Napisz..."
                           value={messageContent}
                           onChange={(e) => setMessageContent(e.target.value)}
                           onKeyDown={handleKeyDown}
-                          className="min-h-[44px] max-h-32 resize-none"
+                          className="min-h-[44px] max-h-32 resize-none text-sm"
                           rows={1}
                           data-testid="input-message"
                         />
@@ -734,6 +791,7 @@ export default function Home() {
                           onClick={handleSendMessage}
                           disabled={!messageContent.trim() || sendMessageMutation.isPending}
                           data-testid="button-send-message"
+                          className="flex-shrink-0"
                         >
                           {sendMessageMutation.isPending ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
