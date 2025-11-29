@@ -38,6 +38,9 @@ export default function Home() {
   const [showToken, setShowToken] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [isAddBotOpen, setIsAddBotOpen] = useState(false);
+  const [commandsList, setCommandsList] = useState<string[]>(["/apka", "/help", "/status"]);
+  const [isEditingCommands, setIsEditingCommands] = useState(false);
+  const [commandsText, setCommandsText] = useState("/apka\n/help\n/status");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch all bots
@@ -184,6 +187,16 @@ export default function Home() {
   const handleSendMessage = () => {
     if (!messageContent.trim()) return;
     sendMessageMutation.mutate(messageContent.trim());
+  };
+
+  const handleSendCommand = (command: string) => {
+    sendMessageMutation.mutate(command);
+  };
+
+  const handleSaveCommands = () => {
+    const commands = commandsText.split("\n").filter(c => c.trim());
+    setCommandsList(commands);
+    setIsEditingCommands(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -615,6 +628,54 @@ export default function Home() {
                         <div ref={messagesEndRef} />
                       </div>
                     </ScrollArea>
+
+                    {/* Commands Panel */}
+                    <div className="px-4 pt-2 pb-0 flex-shrink-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-semibold text-muted-foreground">Komendy:</span>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-6 text-xs" data-testid="button-edit-commands">
+                              Edytuj
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Edytuj komendy bota</DialogTitle>
+                            </DialogHeader>
+                            <Textarea
+                              value={commandsText}
+                              onChange={(e) => setCommandsText(e.target.value)}
+                              placeholder="Wpisz komendy (każda w nowej linii)"
+                              className="min-h-32"
+                            />
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline">Anuluj</Button>
+                              </DialogClose>
+                              <Button onClick={handleSaveCommands} data-testid="button-save-commands">
+                                Zapisz
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      <div className="flex gap-1.5 flex-wrap mb-3">
+                        {commandsList.map((command) => (
+                          <Button
+                            key={command}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSendCommand(command)}
+                            disabled={sendMessageMutation.isPending || !isBotOnline}
+                            className="text-xs h-7"
+                            data-testid={`button-command-${command}`}
+                          >
+                            {command}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
 
                     {/* Message input */}
                     <div className="p-4 border-t border-border bg-card/50 flex-shrink-0">
