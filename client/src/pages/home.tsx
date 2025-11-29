@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { 
   Plus, 
@@ -24,7 +25,8 @@ import {
   MessageSquare,
   Loader2,
   Users,
-  RefreshCw
+  RefreshCw,
+  ChevronDown
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Bot, InsertBot, DiscordGuild, DiscordChannel, DiscordMessage } from "@shared/schema";
@@ -39,6 +41,7 @@ export default function Home() {
   const [showToken, setShowToken] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [isAddBotOpen, setIsAddBotOpen] = useState(false);
+  const [isCommandsOpen, setIsCommandsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const commands = [
@@ -648,10 +651,19 @@ export default function Home() {
                       </div>
                     </ScrollArea>
 
-                    {/* Commands Panel */}
-                    <div className="px-4 pt-3 pb-0 flex-shrink-0 border-t border-border">
-                      <div className="space-y-2">
-                        <h4 className="text-xs font-semibold text-muted-foreground mb-3">Komendy szybkie:</h4>
+                    {/* Commands Panel - Collapsible */}
+                    <Collapsible open={isCommandsOpen} onOpenChange={setIsCommandsOpen} className="flex-shrink-0 border-t border-border">
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-between h-8 px-4 text-xs font-semibold text-muted-foreground hover:bg-muted/50"
+                          data-testid="button-toggle-commands"
+                        >
+                          <span>Komendy szybkie</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${isCommandsOpen ? "rotate-180" : ""}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="px-4 py-3 space-y-2 border-t border-border bg-muted/20">
                         {commands.map((cmd) => (
                           <Button
                             key={cmd.id}
@@ -665,8 +677,8 @@ export default function Home() {
                             <span className="text-xs text-muted-foreground">{cmd.description}</span>
                           </Button>
                         ))}
-                      </div>
-                    </div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
                     {/* Message input */}
                     <div className="p-4 border-t border-border bg-card/50 flex-shrink-0">
